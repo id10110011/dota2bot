@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/id10110011/dota2bot/src/internal/model"
 )
@@ -14,12 +15,20 @@ var players = map[string]string{
 }
 
 func main() {
-	recentMatches("Danek")
-	showInfoOfMatchByPlayer(players["Danek"], "8093496511")
+	ticker := time.NewTicker(1 * time.Minute) // Интервал: 1 минута
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			showInfoOfMatchByPlayer(players["Danek"], "8168593562")
+		}
+	}
+	//recentMatches("Danek")
 }
 
 func recentMatches(name string) {
-	resp, err := http.Get("https://api.opendota.com/api/players/" + players[name] + "/matches/?date=18")
+	resp, err := http.Get("https://api.opendota.com/api/players/" + players[name] + "/matches/?date=1")
 	if err != nil {
 		fmt.Print(err.Error())
 		return
