@@ -31,7 +31,7 @@ type PlayerMatch struct {
 	HeroVariant  int  `json:"hero_variant"`
 }
 
-func (match PlayerMatch) toString() string {
+func (match *PlayerMatch) CovertToString() string {
 	return fmt.Sprintf(
 		"MatchId: %d\t"+
 			"PlayerSlot: %d\t"+
