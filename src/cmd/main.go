@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/id10110011/dota2bot/src/internal/model"
 )
 
 var players = map[string]string{
@@ -29,7 +31,7 @@ func recentMatches(name string) {
 		return
 	}
 
-	var matches []PlayerMatch
+	var matches []model.PlayerMatch
 	err = json.Unmarshal(body, &matches)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -37,7 +39,7 @@ func recentMatches(name string) {
 	}
 
 	for _, v := range matches {
-		fmt.Println(v.toString())
+		fmt.Println(v.CovertToString())
 	}
 
 }
@@ -55,7 +57,7 @@ func showInfoOfMatchByPlayer(playerId string, matchId string) {
 		fmt.Print(err.Error())
 		return
 	}
-	var match Match
+	var match model.Match
 	err = json.Unmarshal(body, &match)
 	if err != nil {
 		fmt.Println(err.Error())
