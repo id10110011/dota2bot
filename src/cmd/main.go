@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -27,17 +28,17 @@ func recentMatches(name string) {
 		fmt.Print(err.Error())
 		return
 	}
-	fmt.Println(body)
-	// var matches []PlayerMatch
-	// err = json.Unmarshal(body, &matches)
-	// if err != nil {
-	// 	fmt.Println(err.Error())
-	// 	return
-	// }
 
-	// for _, v := range matches {
-	// 	fmt.Println(v.toString())
-	// }
+	var matches []PlayerMatch
+	err = json.Unmarshal(body, &matches)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	for _, v := range matches {
+		fmt.Println(v.toString())
+	}
 
 }
 
@@ -54,12 +55,11 @@ func showInfoOfMatchByPlayer(playerId string, matchId string) {
 		fmt.Print(err.Error())
 		return
 	}
-	fmt.Println(body)
-	// var match Match
-	// err = json.Unmarshal(body, &match)
-	// if err != nil {
-	// 	fmt.Println(err.Error())
-	// 	return
-	// }
-	// fmt.Println(match)
+	var match Match
+	err = json.Unmarshal(body, &match)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	fmt.Println(match)
 }
