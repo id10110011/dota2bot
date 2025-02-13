@@ -12,9 +12,12 @@ import (
 func RefreshPlayerHistory(id int) (int, error) {
 	url := fmt.Sprintf("%s%d%s", "https://api.opendota.com/api/players/", id, "/refresh")
 	resp, err := http.Post(url, "application/json", nil)
+	if err != nil {
+		return -1, err
+	}
 	defer resp.Body.Close()
 
-	return resp.StatusCode, err
+	return resp.StatusCode, nil
 }
 
 func RecentMatches(id int) (int, error) {
