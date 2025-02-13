@@ -1,76 +1,74 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
+	"log"
 	"time"
 
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/id10110011/dota2bot/src/internal/model"
+	"github.com/id10110011/dota2bot/src/internal/request"
+	"github.com/id10110011/dota2bot/src/internal/util"
 )
 
-var players = map[string]string{
-	"Danek": "412196175",
+var players = map[string]int{
+	"Danek": 412196175,
 }
 
+var lastMatch = 0
+
 func main() {
-	ticker := time.NewTicker(1 * time.Minute) // Интервал: 1 минута
+	config, err := util.LoadConfig("./src")
+	if err != nil {
+		log.Fatal("Cannot load config:", err)
+	}
+
+	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
+
+	bot, err := tgbotapi.NewBotAPI(config.BotToken)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	bot.Debug = true
+
+	log.Printf("Authorized on account %s", bot.Self.UserName)
 
 	for {
 		select {
 		case <-ticker.C:
-			showInfoOfMatchByPlayer(players["Danek"], "8168593562")
+			match := requestToAPI()
+			if match != nil {
+				info := util.BuildInfoOfPlayer(match, players["Danek"])
+				msg := tgbotapi.NewMessage(config.ChatID, info)
+				bot.Send(msg)
+			}
 		}
 	}
-	//recentMatches("Danek")
-}
-
-func recentMatches(name string) {
-	resp, err := http.Get("https://api.opendota.com/api/players/" + players[name] + "/matches/?date=1")
-	if err != nil {
-		fmt.Print(err.Error())
-		return
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Print(err.Error())
-		return
-	}
-
-	var matches []model.PlayerMatch
-	err = json.Unmarshal(body, &matches)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
-	for _, v := range matches {
-		fmt.Println(v.CovertToString())
-	}
 
 }
 
-func showInfoOfMatchByPlayer(playerId string, matchId string) {
-	fmt.Println(playerId)
-	resp, err := http.Get("https://api.opendota.com/api/matches/" + matchId)
+func requestToAPI() *model.Match {
+	code, err := request.RefreshPlayerHistory(players["Danek"])
 	if err != nil {
-		fmt.Print(err.Error())
-		return
+		log.Println(err.Error())
 	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
+	log.Printf("Refresh player history with status code: %d", code)
+
+	matchId, err := request.RecentMatches(players["Danek"])
 	if err != nil {
-		fmt.Print(err.Error())
-		return
+		log.Println(err.Error())
 	}
-	var match model.Match
-	err = json.Unmarshal(body, &match)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
+
+	if matchId != -1 && matchId != lastMatch {
+		lastMatch = matchId
+		match, err := request.ShowInfoOfMatchByPlayer(matchId)
+		if err != nil {
+			log.Println(err.Error())
+		}
+
+		return match
 	}
-	fmt.Println(match)
+
+	return nil
 }
